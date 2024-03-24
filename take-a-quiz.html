@@ -1,11 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-<body>
-  
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Take a quiz</title>
+    <link rel="stylesheet" href="navbar.css">
+    <link rel="stylesheet" href="general.css">
+    <link rel="stylesheet" href="cards.css">
+  </head>
+  <body>
+    <ul class="topnav">
+      <li><a  href="index.html">Home</a></li>
+      <li><a  href="add-question.html">Add questions</a></li>
+      <li><a href="make-a-quiz.html">Create a quiz</a></li>
+      <li><a class="active" href="take-a-quiz.html">Take a quiz</a></li>
+      <li class="right"><a href="#about">About</a></li>
+    </ul>
+
+    <script>
+      let host = "http://localhost:8080";
+      let questions = [];
+      displayTheQuestions();
+
+      async function getAll() {
+        let response = await fetch(host + "/questions");
+        let result = await response.json();
+        return result;
+      }
+
+      async function displayTheQuestions() {
+        if (questions.length == 0) {
+          questions = await getAll();
+        }
+
+        let list = document.getElementById("list");
+        list.innerHTML = "";
+
+        for (let question of questions) {
+          let div = document.createElement("div");
+          div.className = "card";
+          let innerHtml = `
+         
+        <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
+        <div class="container">
+          <h4><b>${question.id}</b></h4> 
+          <p>${question.description}</p>
+          <form>
+              <input type="radio" id="q${question.id}ptionA" name="q2Answer" value="A">
+              <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
+
+              <input type="radio" id="q${question.id}ptionB" name="q2Answer" value="B">
+              <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
+
+              <input type="radio" id="q${question.id}ptionC" name="q2Answer" value="C">
+              <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
+          </form> 
+        </div>
+     
+            `;
+          div.innerHTML = innerHtml;
+          list.appendChild(div);
+        }
+      }
+
+    </script>
+  </body>
 </html>
