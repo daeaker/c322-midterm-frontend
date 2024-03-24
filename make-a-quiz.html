@@ -27,9 +27,9 @@
     <label>Quiz Name: </label>
     <input type="text" id="quizName">
     <br>
-    <button>Save your changes</button>
+    <button onclick="postOrPut(false)">Save your changes</button>
     <br>
-    <button>Save this quiz and start a new one</button>
+    <button onclick="postOrPut(true)">Save this quiz and start a new one</button>
     <br>
     <b>If you want to remove a question from the quiz, you can click on the question here and it will be removed from the quiz.</b>
 
@@ -63,9 +63,12 @@
       let host = "http://localhost:8080";
       let questions = [];
       let chosen = [];
-      let idlist =[1,4];
+      let idlist =[];
+      let curId = -1;
       displayTheQuestions();
       displaySelectedQuestions();
+
+      let alreadySaved = false;
 
       async function getAll() {
         let response = await fetch(host + "/questions");
@@ -73,6 +76,52 @@
         return result;
       }
 
+      // saves the quiz in the backend
+      // nextQuiz is a boolean that tells if a new quiz should be started.
+      async function postOrPut(nextQuiz) {
+        let quiz = {};
+        quiz.title = document.getElementById("quizName").value;
+        quiz.questionIds = idlist;
+
+
+        if (alreadySaved == true) {
+          let request = {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(quiz),
+        };
+        let response = await fetch(host + "/quizzes/" + curId, request);
+        }
+        else {
+          let request = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(quiz),
+        };
+        let response = await fetch(host + "/quizzes", request);
+        curId = await response.json();
+        alert(curId);
+        }
+
+
+        if (nextQuiz == false) {
+          alreadySaved = true;
+        }
+        else {
+          alreadySaved = false;
+          idlist = [];
+          chosen = [];
+        }
+        displaySelectedQuestions();
+      }
+
+
+
+      // Gets each of the questions that has been selected for the quiz from the backend.
       async function getSelected(ids) {
         let results = []
 
@@ -85,15 +134,13 @@
         return results
       }
 
+      // Shows each of the selected questions on the page
       async function displaySelectedQuestions() {
 
         chosen = []
         chosen = await getSelected(idlist)
 
 
-        alert(chosen)
-        
-        
         let list = document.getElementById("selected");
         list.innerHTML = "";
 
@@ -101,7 +148,8 @@
           let div = document.createElement("div");
           div.className = "card";
           let innerHtml = `
-         
+        
+        <button onclick="removeFromIdlist(${question.id})">
         <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
         <div class="container">
           <h4><b>${question.id}</b></h4> 
@@ -117,6 +165,7 @@
               <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
           </form> 
         </div>
+        </button>
      
             `;
           div.innerHTML = innerHtml;
@@ -125,9 +174,35 @@
       }
 
 
+      // removes IDs from the list if they are deselected
+      async function removeFromIdlist(id) {
+        let index = idlist.indexOf(id);
+
+        if (index > -1) {
+          idlist.splice(index,1);
+        }
+        displaySelectedQuestions();
+      }
+
+      
+
+      // adds IDs to the list if they are selected
+      async function addToIdlist(id) {
+        let inList = false;
+        for (let number of idlist) {
+          if (number == id) {
+            inList = true;
+          }
+        }
+        if (inList == false) {
+          idlist = idlist.concat(id);
+        }
+        displaySelectedQuestions();
+      }
 
 
 
+      // displays all available questions
       async function displayTheQuestions() {
         if (questions.length == 0) {
           questions = await getAll();
@@ -140,7 +215,7 @@
           let div = document.createElement("div");
           div.className = "card";
           let innerHtml = `
-         
+        <button onclick="addToIdlist(${question.id})">
         <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
         <div class="container">
           <h4><b>${question.id}</b></h4> 
@@ -156,6 +231,7 @@
               <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
           </form> 
         </div>
+        </button>
      
             `;
           div.innerHTML = innerHtml;
