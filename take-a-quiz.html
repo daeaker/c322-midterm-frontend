@@ -17,17 +17,68 @@
       <li class="right"><a href="#about">About</a></li>
     </ul>
 
+
+
+    <div class="quizzes">
+      <b>Here are the list of all available quizzes. Click on a quiz to start taking the quiz.</b>
+      <br>
+      <div id="list" class="cards"></div>
+    </div>
+
     <script>
       let host = "http://localhost:8080";
       let questions = [];
-      displayTheQuestions();
+      let quizzes = [];
+      displayTheQuizzes();
 
+
+      // gets all quizzes from backend
+      async function getAllQuizzes() {
+        let response = await fetch(host + "/quizzes");
+        let result = await response.json();
+        return result;
+      }
+
+      // displays all available quizzes
+      async function displayTheQuizzes() {
+        quizzes = await getAllQuizzes();
+
+        let list = document.getElementById("list");
+        list.innerHTML = "";
+
+        for (let quiz of quizzes) {
+          let quizLength = quiz.questionIds.length;
+          let div = document.createElement("div");
+          div.className = "card";
+          let innerHtml = `
+          <button onclick="takeQuiz(${quiz.id})">
+          <div class="container">
+            <h4 align="left"><b>${quiz.id}</b></h4> 
+          <p>${quiz.title}</p>
+          <p>(${quizLength} questions)<p>
+          </button>
+          `;
+          div.innerHTML = innerHtml;
+          list.appendChild(div);
+        }
+      }
+
+
+      // takes the quiz using the quiz's id
+      async function takeQuiz(number) {
+        location.href = "quiz.html?id=" + number +"&question=1";
+      }
+
+
+
+      
       async function getAll() {
         let response = await fetch(host + "/questions");
         let result = await response.json();
         return result;
       }
 
+      // displays all available questions
       async function displayTheQuestions() {
         if (questions.length == 0) {
           questions = await getAll();
@@ -40,7 +91,7 @@
           let div = document.createElement("div");
           div.className = "card";
           let innerHtml = `
-         
+        <button onclick="addToIdlist(${question.id})">
         <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
         <div class="container">
           <h4><b>${question.id}</b></h4> 
@@ -56,6 +107,7 @@
               <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
           </form> 
         </div>
+        </button>
      
             `;
           div.innerHTML = innerHtml;

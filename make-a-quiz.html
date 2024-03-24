@@ -182,6 +182,7 @@
           idlist.splice(index,1);
         }
         displaySelectedQuestions();
+        displayTheQuestions();
       }
 
       
@@ -198,6 +199,7 @@
           idlist = idlist.concat(id);
         }
         displaySelectedQuestions();
+        displayTheQuestions();
       }
 
 
@@ -212,30 +214,32 @@
         list.innerHTML = "";
 
         for (let question of questions) {
-          let div = document.createElement("div");
-          div.className = "card";
-          let innerHtml = `
-        <button onclick="addToIdlist(${question.id})">
-        <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
-        <div class="container">
-          <h4><b>${question.id}</b></h4> 
-          <p>${question.description}</p>
-          <form>
-              <input type="radio" id="q${question.id}ptionA" name="q2Answer" value="A">
-              <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
+          if (idlist.indexOf(question.id) == -1) {
+            let div = document.createElement("div");
+            div.className = "card";
+            let innerHtml = `
+          <button onclick="addToIdlist(${question.id})">
+          <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
+          <div class="container">
+            <h4><b>${question.id}</b></h4> 
+            <p>${question.description}</p>
+            <form>
+                <input type="radio" id="q${question.id}ptionA" name="q2Answer" value="A">
+                <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
 
-              <input type="radio" id="q${question.id}ptionB" name="q2Answer" value="B">
-              <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
+                <input type="radio" id="q${question.id}ptionB" name="q2Answer" value="B">
+                <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
 
-              <input type="radio" id="q${question.id}ptionC" name="q2Answer" value="C">
-              <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
-          </form> 
-        </div>
-        </button>
-     
-            `;
-          div.innerHTML = innerHtml;
-          list.appendChild(div);
+                <input type="radio" id="q${question.id}ptionC" name="q2Answer" value="C">
+                <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
+            </form> 
+          </div>
+          </button>
+      
+              `;
+            div.innerHTML = innerHtml;
+            list.appendChild(div);
+          }
         }
       }
 

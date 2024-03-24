@@ -3,9 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Quiz</title>
 </head>
 <body>
+
+  <div class="questions">
+    <div id="list" class="cards" align="center"></div>
+  </div>
+
+  <div id="questionCount" align="center"></div>
+  <div id="nextButtons" align="center"></div>
   
+
+  <script>
+    let host = "http://localhost:8080";
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizId = urlParams.get("id");
+    let curQuestionIndex = urlParams.get("question");
+    let quizLength = 0;
+    let questions = []
+    displayCurrentQuestion();
+
+
+    // adds the question
+    async function addQuestionCount() {
+      let questionCount = document.getElementById("questionCount");
+      questionCount.innerHTML = "(Question " + curQuestionIndex + " out of " + quizLength + ")";
+    }
+
+
+    // adds the next and previous button
+    async function addNextButtons() {
+      let nextButtons = document.getElementById("nextButtons");
+      nextButtons.innerHTML = "";
+
+      let previousHtml = "quiz.html?id=" + quizId +"&question=" + curQuestionIndex-1
+      let nextHtml = "quiz.html?id=" + quizId +"&question=" + curQuestionIndex+1
+
+      let div = document.createElement("div");
+      div.className = "controls"
+      let innerHtml = `
+      <button onclick=goPrevious()>Previous</button>
+      &nbsp;&nbsp;&nbsp;
+      <button onclick=goNext()>Next</button>
+      `
+      
+      if (curQuestionIndex == 1) {
+        innerHtml = `
+      &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+      <button onclick=goNext()>Next</button>
+      `
+      }
+      div.innerHTML = innerHtml;
+      nextButtons.appendChild(div);
+
+
+
+    }
+
+    async function goPrevious() {
+      let previousIndex = parseInt(curQuestionIndex)-1
+      let previousHtml = "quiz.html?id=" + quizId +"&question=" + previousIndex
+      location.href = previousHtml;
+    }
+    
+    async function goNext() {
+      let nextIndex = parseInt(curQuestionIndex)+1
+      let nextHtml = "quiz.html?id=" + quizId +"&question=" +nextIndex
+      location.href = nextHtml;
+    }
+
+  
+    // gets the quiz from the backend
+    async function getQuiz(num) {
+      let response = await fetch(host + "/quizzes/" + num);
+      let result = await response.json();
+      quizLength = result.questionIds.length;
+      questions = result.questionIds;
+      return result;
+    }
+
+    // gets the question from the backend
+    async function getQuestion(num) {
+      let response = await fetch(host + "/questions/" + num);
+      let result = await response.json();
+      return result;
+    }
+
+
+    // Shows each of the selected questions on the page
+    async function displayCurrentQuestion() {
+      await getQuiz(quizId);
+
+      let list = document.getElementById("list");
+      list.innerHTML = "";
+
+      if (curQuestionIndex <= quizLength) {
+
+        let questionId = questions[curQuestionIndex-1];
+        let question = await getQuestion(questionId);
+        let div = document.createElement("div");
+        div.className = "card";
+        let innerHtml = `
+
+        <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:40%">
+        <div class="container">
+          <h4><b>${question.id}</b></h4> 
+          <p>${question.description}</p>
+          <form>
+              <input type="radio" id="q${question.id}ptionA" name="q2Answer" value="A">
+              <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
+
+              <input type="radio" id="q${question.id}ptionB" name="q2Answer" value="B">
+              <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
+
+              <input type="radio" id="q${question.id}ptionC" name="q2Answer" value="C">
+              <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
+          </form> 
+        </div>
+
+            `;
+        div.innerHTML = innerHtml;
+        list.appendChild(div);
+
+        addQuestionCount();
+        addNextButtons();
+      }
+      else {
+        showScore();
+      }
+    }
+
+  </script>
+
+
 </body>
 </html>
